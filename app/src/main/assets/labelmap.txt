@@ -1,0 +1,6 @@
+baby_activity
+baby_sleeping_wrong
+baby_sleeping_good
+baby_awake
+baby_face_covered
+baby_nose
