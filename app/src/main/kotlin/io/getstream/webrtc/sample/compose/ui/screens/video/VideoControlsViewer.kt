@@ -37,9 +37,9 @@ fun VideoControlsViewer(
   var torchOn by remember { mutableStateOf(false) }
   var brightnessHigh by remember { mutableStateOf(false) }
   val brightnessIcon = if (brightnessHigh) {
-    R.drawable.brightness_on
+    R.drawable.flip_cam_round
   } else {
-    R.drawable.brightness_off
+    R.drawable.flip_cam_round
   }
   val torchIcon = if (torchOn) {
     R.drawable.torch_on

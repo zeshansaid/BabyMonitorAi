@@ -88,6 +88,7 @@ fun VideoCallScreen(role: AppUtils.Role) {
     var videoTrack: VideoTrack?
     if (role == AppUtils.Role.VIEWER) {
       videoTrack = remoteVideoTrackState
+
 /////////////////////////////////////////// 2. Start the service after track is available/////////////////////////////////////
 //      val intent = Intent(context, StreamService::class.java)
 //      ContextCompat.startForegroundService(context, intent)
@@ -111,6 +112,7 @@ fun VideoCallScreen(role: AppUtils.Role) {
             scope.launch(Dispatchers.IO) {
               try {
                 val retainedFrame = VideoFrame(originalBuffer, frame.rotation, frame.timestampNs)
+
                 val bitmap = convertVideoFrameToBitmap(retainedFrame)
                 latestBitmap = bitmap
                 retainedFrame.release()
@@ -214,8 +216,8 @@ fun VideoCallScreen(role: AppUtils.Role) {
             when (message.lowercase()) {
               "torch_on" -> toggleTorch(context, true) { isTorchOn = true }
               "torch_off" -> toggleTorch(context, false) { isTorchOn = false }
-              "brightness_high" -> toggleBrightness(context, true) { isBrightnessHigh = true }
-              "brightness_low" -> toggleBrightness(context, false) { isBrightnessHigh = false }
+              "brightness_high" -> sessionManager.flipCamera() //toggleBrightness(context, true) { isBrightnessHigh = true }
+              "brightness_low" -> sessionManager.flipCamera() //toggleBrightness(context, false) { isBrightnessHigh = false }
               else -> Log.d("Streamer", "Unknown message: $message")
             }
           }
@@ -257,7 +259,6 @@ fun VideoCallScreen(role: AppUtils.Role) {
         }
       )
     }
-
 
     else if (role == AppUtils.Role.VIEWER) {
       VideoControlsViewer(

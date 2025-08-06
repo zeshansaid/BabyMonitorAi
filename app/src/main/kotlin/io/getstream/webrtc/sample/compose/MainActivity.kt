@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -50,6 +51,8 @@ import com.google.mediapipe.tasks.components.containers.Category
 
 import io.getstream.webrtc.sample.compose.components.QrCode
 import io.getstream.webrtc.sample.compose.components.Scanner
+import io.getstream.webrtc.sample.compose.db.CategoryViewModel
+import io.getstream.webrtc.sample.compose.db.CategoryViewModelFactory
 import io.getstream.webrtc.sample.compose.maincontent.QrScreenContent
 import io.getstream.webrtc.sample.compose.ui.screens.stage.StageScreen
 import io.getstream.webrtc.sample.compose.ui.screens.video.VideoCallScreen
@@ -93,7 +96,14 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
 //        ............................................................................................
     //if STREAMER:
     //Create ax ID:
-    val randomRoomId = if (initialRole == AppUtils.Role.STREAMER) AppUtils.generate32BitRandomKey() else ""
+    val randomRoomId =
+      if (initialRole == AppUtils.Role.STREAMER) AppUtils.generate32BitRandomKey() else ""
+
+    //viewmodel for db
+    val categoryViewModel: CategoryViewModel by viewModels {
+      CategoryViewModelFactory(this)
+    }
+
 
     setContent {
       WebrtcSampleComposeTheme {
@@ -304,15 +314,17 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
 
 //        ............................................................................................
         LaunchedEffect(AppUtils.sessionManager) {
+
           if (role == AppUtils.Role.STREAMER) {
             AppUtils.sessionManager?.signalingClient?.chatMessages?.collect { message ->
               Log.d(AppUtils.TAG, "Received message from viewer: $message")
               // You can add a Snack bar or a Composable list to show this in UI
             }
           }
-          AppUtils.sessionManager?.signalingClient?.chatMessages?.collect { result ->
 
-            if (role == AppUtils.Role.VIEWER) {
+          if (role == AppUtils.Role.VIEWER) {
+            AppUtils.sessionManager?.signalingClient?.chatMessages?.collect { result ->
+
               Log.d(AppUtils.TAG, "Received message:$result")
 
               try {
@@ -322,14 +334,13 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
 
                 // If successful, update the state to trigger recomposition
                 receivedCategories.value = receivedList
-
+                categoryViewModel.insertCategoryDTOs(receivedList)
                 Log.d(AppUtils.TAG, "Parsed CategoryDTO list: $receivedList")
 
               } catch (e: Exception) {
                 Log.e(AppUtils.TAG, "Failed to parse category list: ${e.message}")
               }
             }
-
           }
         }
 
@@ -355,15 +366,7 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
               Box(modifier = Modifier.fillMaxSize()) {
                 VideoCallScreen(role = role)
 
-                if (role == AppUtils.Role.VIEWER && receivedCategories.value.isNotEmpty()) {
 
-                  VoiceClassificationUI(
-                    results = receivedCategories.value,
-                    modifier = Modifier
-                      .fillMaxSize()
-                      .zIndex(1f)  // Brings this UI to front
-                  )
-                }
               }
             }
           }
@@ -371,6 +374,7 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
       }
     }
   }
+
   override fun onDestroy() {
     super.onDestroy()
 
@@ -426,7 +430,7 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
       withContext(Dispatchers.Default) {
         audioClassifierHelper = AudioClassifierHelper(
           context = this@MainActivity,
-          classificationThreshold = 0.5f,
+          classificationThreshold = 0.2f,
           overlap = 1,
           numOfResults = 3,
           runningMode = RunningMode.AUDIO_STREAM,
@@ -437,27 +441,6 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
 
   }
 
-  @Composable
-  private fun VoiceClassificationUI(results: List<CategoryDTO>, modifier: Modifier) {
-    Text("Voice Classification", style = MaterialTheme.typography.headlineSmall)
-    Box(
-      modifier = Modifier
-        .background(Color.Transparent)
-        .fillMaxSize(),
-
-      contentAlignment = Alignment.BottomCenter
-    ) {
-
-      Column(
-        modifier = Modifier
-          .fillMaxWidth()
-          .fillMaxHeight(0.6f)
-          .padding(16.dp)
-      ) {
-        CategoryList(categories = results)
-      }
-    }
-  }
 
 }
 

@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -17,6 +19,8 @@ import io.getstream.webrtc.sample.compose.ui.screens.PremiumScreen
 import io.getstream.webrtc.sample.compose.ui.screens.SettingScreen
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import io.getstream.webrtc.sample.compose.db.CategoryViewModel
+import io.getstream.webrtc.sample.compose.db.CategoryViewModelFactory
 
 
 @Composable
@@ -71,7 +75,16 @@ fun MainNavigationWithBottomBar(
       }
 
       composable(Screen.Activity.route) {
-        ActivityScreen(onBackClick = { navController.popBackStack() })
+
+
+        val context = LocalContext.current
+        val factory = CategoryViewModelFactory(context)
+        val categoryViewModel: CategoryViewModel = viewModel(factory = factory)
+
+        ActivityScreen(
+          onBackClick = { navController.popBackStack() },
+          categoryViewModel = categoryViewModel
+        )
       }
       composable(Screen.Explore.route) {
         ExploreScreen(onBackClick = { navController.popBackStack() })

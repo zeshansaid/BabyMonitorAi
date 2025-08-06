@@ -6,6 +6,7 @@ plugins {
   id(libs.plugins.android.application.get().pluginId)
   id(libs.plugins.kotlin.android.get().pluginId)
   id(libs.plugins.compose.compiler.get().pluginId)
+  id("com.google.devtools.ksp")
 }
 
 val localProperties = Properties()
@@ -124,10 +125,17 @@ dependencies {
 
 
 
-  // Media pipe Library
+  // Media pipe Library/audio classification
   implementation(libs.tasks.audio)
   implementation(libs.gson)
   implementation(libs.androidx.navigation.compose.android)
+
+
+  /// room db
+  val room_version = "2.7.2"
+
+  implementation("androidx.room:room-runtime:$room_version")
+  ksp("androidx.room:room-compiler:$room_version")
 
 
 }
