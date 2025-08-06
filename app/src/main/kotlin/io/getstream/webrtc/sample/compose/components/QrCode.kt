@@ -2,6 +2,7 @@ package io.getstream.webrtc.sample.compose.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.getstream.webrtc.sample.compose.AppUtils
 import io.getstream.webrtc.sample.compose.R
+import io.getstream.webrtc.sample.compose.ui.theme.appColorScheme
 
 
 //-------------------------------
@@ -35,7 +38,7 @@ import io.getstream.webrtc.sample.compose.R
 //-------------------------------
 @Composable
 fun QrCode(roomId: String) {
-
+  val colors = appColorScheme()
    val qrCodeBitmap = remember {
     AppUtils.generateQRCode(roomId)
 
@@ -43,8 +46,9 @@ fun QrCode(roomId: String) {
 
   Column(
     modifier = Modifier
-      .background(colorResource(id = R.color.app_color))
-      .padding(16.dp),
+      .clip(RoundedCornerShape(24.dp))
+      .background(color = colors.primary),
+
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center
   ) {
@@ -53,7 +57,8 @@ fun QrCode(roomId: String) {
       bitmap = qrCodeBitmap.asImageBitmap(),
       contentDescription = "QR Code",
       modifier = Modifier
-        .size(220.dp)  // Adjust the size as needed
+        .size(220.dp)
+        .clip(RoundedCornerShape(20.dp))
     )
   }
 }

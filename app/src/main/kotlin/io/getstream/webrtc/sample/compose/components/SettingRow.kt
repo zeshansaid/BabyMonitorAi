@@ -25,7 +25,7 @@ fun SettingRow(
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .padding(16.dp),
+      .padding(horizontal = 16.dp, vertical = 4.dp),
     verticalAlignment = Alignment.CenterVertically
   ) {
     Row(

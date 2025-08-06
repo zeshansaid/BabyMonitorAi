@@ -133,7 +133,7 @@ fun HomeScreen(
           shape = RoundedCornerShape(30.dp),
           elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 6.dp),
           border = ButtonDefaults.outlinedButtonBorder.copy(
-            width = 2.dp,
+            width = 1.dp,
             brush = androidx.compose.ui.graphics.SolidColor(colors.primary)
           )
         ) {

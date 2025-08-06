@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.google.mediapipe.tasks.components.containers.Category
 
 @Composable
 fun CategoryList(categories: List<CategoryDTO>) {
@@ -37,13 +36,3 @@ fun CategoryList(categories: List<CategoryDTO>) {
 
 
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewCategoryList() {
-    val categories = listOf(
-      CategoryDTO(0.7f, 0, "Speech", "Human Voice"),
-      CategoryDTO(0.5f, 1, "Music", "Instrumental"),
-      CategoryDTO(0.3f, 2, "Noise", "Background Noise")
-    )
-    CategoryList(categories)
-}

@@ -38,8 +38,7 @@ import androidx.compose.ui.unit.dp
 import io.getstream.webrtc.sample.compose.AppUtils
 import io.getstream.webrtc.sample.compose.MainActivity
 import io.getstream.webrtc.sample.compose.R
-import io.getstream.webrtc.sample.compose.components.QrCode
-import io.getstream.webrtc.sample.compose.components.Scanner
+
 import io.getstream.webrtc.sample.compose.ui.onboard.OnboardingScreen
 import io.getstream.webrtc.sample.compose.ui.theme.robotoFont
 

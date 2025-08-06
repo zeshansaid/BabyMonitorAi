@@ -5,33 +5,24 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -41,16 +32,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.mediapipe.tasks.audio.core.RunningMode
-import com.google.mediapipe.tasks.components.containers.Category
-
-import io.getstream.webrtc.sample.compose.components.QrCode
 import io.getstream.webrtc.sample.compose.components.Scanner
+
 import io.getstream.webrtc.sample.compose.db.CategoryViewModel
 import io.getstream.webrtc.sample.compose.db.CategoryViewModelFactory
 import io.getstream.webrtc.sample.compose.maincontent.QrScreenContent
@@ -59,23 +47,21 @@ import io.getstream.webrtc.sample.compose.ui.screens.video.VideoCallScreen
 import io.getstream.webrtc.sample.compose.ui.theme.AppGreen
 import io.getstream.webrtc.sample.compose.ui.theme.Gray0
 import io.getstream.webrtc.sample.compose.ui.theme.Gray300
-import io.getstream.webrtc.sample.compose.ui.theme.Gray500
 import io.getstream.webrtc.sample.compose.ui.theme.WebrtcSampleComposeTheme
 import io.getstream.webrtc.sample.compose.ui.theme.robotoFont
 import io.getstream.webrtc.sample.compose.voiceclassification.AudioClassifierHelper
 import io.getstream.webrtc.sample.compose.voiceclassification.CategoryDTO
-import io.getstream.webrtc.sample.compose.voiceclassification.CategoryList
 import io.getstream.webrtc.sample.compose.webrtc.SignalingClient
 import io.getstream.webrtc.sample.compose.webrtc.SignalingCommand
 import io.getstream.webrtc.sample.compose.webrtc.peer.StreamPeerConnectionFactory
-import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManager
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManagerImpl
 import io.getstream.webrtc.sample.compose.webrtc.sessions.LocalWebRtcSessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.Executors
-import kotlin.compareTo
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListener {
   private lateinit var audioClassifierHelper: AudioClassifierHelper
@@ -181,16 +167,24 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
           }
           Box(
             modifier = Modifier
-              .fillMaxSize()
-              .background(colorResource(R.color.app_color))
-              .padding(32.dp), contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .background(colorResource(R.color.app_color))
+                .padding(32.dp), contentAlignment = Alignment.Center
           ) {
 
-            Scanner { result ->
-              Log.d(AppUtils.TAG, "Scanned Room ID: $result")
-              roomId = result
-              startScanner = false
-            }
+            Scanner(
+              onScanned = { result ->
+                Log.d(AppUtils.TAG, "Scanned Room ID: $result")
+                roomId = result
+                startScanner = false
+              },
+              onCancelled = {
+                Log.d(AppUtils.TAG, "Scanner cancelled")
+                startScanner = false // Very important!
+                finish() // Optional: close app or go back
+              }
+            )
+
 
           }
 
@@ -201,16 +195,16 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
         if (role == AppUtils.Role.VIEWER && !isCallStarted && !isSessionInitialized && !startScanner) {
           Box(
             modifier = Modifier
-              .fillMaxSize()
-              .background(colorResource(R.color.app_color)),
+                .fillMaxSize()
+                .background(colorResource(R.color.app_color)),
             contentAlignment = Alignment.Center,
           ) {
             Column(
               horizontalAlignment = Alignment.CenterHorizontally,
               verticalArrangement = Arrangement.Center,
               modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center)
+                  .fillMaxWidth()
+                  .align(Alignment.Center)
             ) {
 
 
@@ -229,8 +223,8 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
                 fontFamily = FontFamily.SansSerif,
 
                 modifier = Modifier
-                  .padding(16.dp)
-                  .fillMaxWidth()
+                    .padding(16.dp)
+                    .fillMaxWidth()
               )
               Text(
                 text = buildAnnotatedString {
@@ -255,8 +249,8 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
 
             Column(
               modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(start = 32.dp, end = 32.dp, bottom = 40.dp)
+                  .align(Alignment.BottomCenter)
+                  .padding(start = 32.dp, end = 32.dp, bottom = 40.dp)
             ) {
               OutlinedButton(
                 onClick = {
@@ -276,8 +270,8 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
                   }
                 },
                 modifier = Modifier
-                  .fillMaxWidth()
-                  .height(50.dp),
+                    .fillMaxWidth()
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
                   containerColor = colorResource(R.color.app_green),
                   contentColor = Gray0
@@ -405,13 +399,16 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
 //      categories.toString()
 //    )
     Log.d(AppUtils.TAG, "onResult in streamerr: $categories")
+    val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+    val currentTime = formatter.format(Date()).lowercase()
 
     val dtoList = categories.map {
       CategoryDTO(
         score = it.score(),
         index = it.index(),
         categoryName = it.categoryName(),
-        displayName = it.displayName()
+        displayName = it.displayName(),
+        timestamp = currentTime
       )
     }
 

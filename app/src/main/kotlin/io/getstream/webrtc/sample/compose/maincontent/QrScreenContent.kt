@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.getstream.webrtc.sample.compose.components.QrCode
 import io.getstream.webrtc.sample.compose.ui.theme.DarkColors
 import io.getstream.webrtc.sample.compose.ui.theme.LightColors
@@ -78,15 +79,18 @@ fun QrScreenContent(
 
         Text(
           text = buildAnnotatedString {
-            append("Scan this QR on another mobile device and then click on ")
+            append("Scan this QR on another mobile device\n and then click on ")
             withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
               append("Done")
             }
-            append(" button below!")
+            append("\nbutton below!")
           },
           color = colors.onBackground,
           textAlign = TextAlign.Center,
-          style = MaterialTheme.typography.bodyLarge,
+          style = MaterialTheme.typography.titleMedium.copy(
+            fontWeight = FontWeight.W900,
+            fontSize = 20.sp
+          ),
           modifier = Modifier.fillMaxWidth()
         )
       }

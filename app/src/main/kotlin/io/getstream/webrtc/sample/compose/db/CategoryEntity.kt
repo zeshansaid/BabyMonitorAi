@@ -9,5 +9,6 @@ data class CategoryEntity(
   @PrimaryKey(autoGenerate = false)
   val index: Int,
   val categoryName: String,
-  val displayName: String
+  val displayName: String,
+  val timestamp: String
 )

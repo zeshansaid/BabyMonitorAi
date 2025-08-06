@@ -18,7 +18,8 @@ class CategoryViewModel(private val repository: CategoryRepository) : ViewModel(
         score = it.score,
         index = it.index,
         categoryName = it.categoryName,
-        displayName = it.displayName
+        displayName = it.displayName,
+        timestamp = it.timestamp
       )
     }
     viewModelScope.launch {
