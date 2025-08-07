@@ -29,93 +29,124 @@ import androidx.compose.ui.zIndex
 import io.getstream.webrtc.sample.compose.AppUtils
 import io.getstream.webrtc.sample.compose.db.CategoryEntity
 import io.getstream.webrtc.sample.compose.db.CategoryViewModel
+import kotlin.random.Random
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(
   onBackClick: () -> Unit,
   categoryViewModel: CategoryViewModel
 ) {
+
+  val categories by categoryViewModel.categories.collectAsState()
+  val isLoading by categoryViewModel.isLoading.collectAsState()
+
+
   val colors = MaterialTheme.colorScheme
   val typography = MaterialTheme.typography
   val isDark = isSystemInDarkTheme()
 
-  val categories by categoryViewModel.categories.collectAsState()
-  var selectedCategory by remember { mutableStateOf<CategoryEntity?>(null) }
-  var isLoading by remember { mutableStateOf(true) }
 
-  LaunchedEffect(categories) {
-    isLoading = categories.isEmpty()
-  }
+  var selectedCategory by remember { mutableStateOf<CategoryEntity?>(null) }
+
+
+
 
   Scaffold(
     containerColor = colors.background,
     topBar = {
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-
-      }
+      TopAppBar(
+        title = { Text("Baby Activities Timeline") },
+        navigationIcon = {
+          IconButton(onClick = onBackClick) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+          }
+        }
+      )
     }
   ) { innerPadding ->
 
-    Column(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding)
-    ) {
-      // Header section (20% height)
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .fillMaxHeight(0.1f)
-          .padding(horizontal = 16.dp)
-      ) {
-        HeaderDeviceInfo(isLoading = isLoading)
-      }
-
-
-      // LazyColumn (remaining space)
-      LazyColumn(
-        modifier = Modifier
-          .fillMaxSize()
-          .padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(vertical = 8.dp)
-      ) {
-        if (isLoading) {
+    when {
+      isLoading -> {
+        // Show shimmer placeholders
+        LazyColumn(
+          contentPadding = PaddingValues(16.dp),
+          verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
           items(6) { index ->
-            Column {
-              ShimmerCategoryItem(showLine = index < 5)
-              Spacer(modifier = Modifier.height(12.dp))
-            }
+            ShimmerCategoryItem(showLine = index < 5)
           }
-        } else {
-          itemsIndexed(categories) { index, item ->
-            Column {
-              CategoryItem(
-                event = item,
-                onClick = { selectedCategory = item },
-
-              )
-              Spacer(modifier = Modifier.height(12.dp))
-            }
-          }
-        }
-
-        item {
-          Spacer(modifier = Modifier.height(100.dp))
         }
       }
 
-      // Optional popup
-      selectedCategory?.let {
-        // FloatingPopupCard(event = it, onDismiss = { selectedCategory = null })
+      categories.isEmpty() -> {
+        // Show "No activity" message
+        Box(
+          modifier = Modifier.fillMaxSize(),
+          contentAlignment = Alignment.Center
+        ) {
+          Text("No activity found.")
+        }
       }
+
+      else -> {
+
+
+        /*show category list*/
+
+        Column(
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+        ) {
+
+          Box(
+            modifier = Modifier
+              .fillMaxWidth()
+              .fillMaxHeight(0.1f)
+              .padding(horizontal = 16.dp)
+          ) {
+            HeaderDeviceInfo()
+          }
+
+
+          // LazyColumn (remaining space)
+          LazyColumn(
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(vertical = 8.dp)
+          ) {
+            itemsIndexed(categories) { index, item ->
+              Column {
+                CategoryItem(
+                  event = item,
+                  onClick = { selectedCategory = item },
+
+                  )
+                Spacer(modifier = Modifier.height(12.dp))
+              }
+            }
+
+            item {
+              Spacer(modifier = Modifier.height(100.dp))
+            }
+          }
+
+          // Optional popup
+          selectedCategory?.let {
+            // FloatingPopupCard(event = it, onDismiss = { selectedCategory = null })
+          }
+        }
+
+      }
+
+
+
     }
+
+
   }
 }
 
@@ -154,7 +185,7 @@ fun ShimmerEffect(
 }
 
 @Composable
-fun HeaderDeviceInfo(isLoading: Boolean) {
+fun HeaderDeviceInfo() {
   val colors = MaterialTheme.colorScheme
   val typography = MaterialTheme.typography
 
@@ -190,7 +221,6 @@ fun HeaderDeviceInfo(isLoading: Boolean) {
     }
   }
 }
-
 
 @Composable
 fun ShimmerCategoryItem(showLine: Boolean) {
@@ -261,7 +291,7 @@ fun CategoryItem(
   event: CategoryEntity,
   onClick: () -> Unit,
 
-) {
+  ) {
   val colors = MaterialTheme.colorScheme
   val typography = MaterialTheme.typography
   val isDarkTheme = isSystemInDarkTheme()
@@ -284,34 +314,33 @@ fun CategoryItem(
       )
       Spacer(modifier = Modifier.width(16.dp))
 
-      Column (
+      Column(
         modifier = Modifier.width(40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
+        val randomColor = remember {
+          Color(
+            red = Random.nextFloat(),
+            green = Random.nextFloat(),
+            blue = Random.nextFloat(),
+            alpha = 1f
+          )
+        }
 
         Box(
           modifier = Modifier
             .size(32.dp)
-            .background(colors.secondary, CircleShape)
+            .background(randomColor, CircleShape)
             .zIndex(1f),
           contentAlignment = Alignment.Center
         ) {
-          if (event.categoryName.contains("sleeping", ignoreCase = true)) {
-            Text(
-              "zZ",
-              style = typography.labelSmall.copy(
-                fontWeight = FontWeight.Bold,
-                color = colors.onSecondary
-              )
+          Text(
+            "zZ",
+            style = typography.labelSmall.copy(
+              fontWeight = FontWeight.Bold,
+              color = colors.onSecondary
             )
-          } else {
-            Icon(
-              Icons.Default.PlayArrow,
-              contentDescription = null,
-              tint = colors.onSecondary,
-              modifier = Modifier.size(16.dp)
-            )
-          }
+          )
         }
 
         Box(
@@ -343,8 +372,6 @@ fun CategoryItem(
           ),
           modifier = Modifier.padding(top = 4.dp)
         )
-
-
 
 
       }
