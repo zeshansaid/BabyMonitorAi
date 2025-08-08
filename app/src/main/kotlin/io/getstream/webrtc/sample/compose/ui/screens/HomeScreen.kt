@@ -1,6 +1,7 @@
 package io.getstream.webrtc.sample.compose.ui.screens
 
 
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,12 +17,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import io.getstream.webrtc.sample.compose.R
 import io.getstream.webrtc.sample.compose.components.BottomNavigationBar
+import io.getstream.webrtc.sample.compose.db.DeviceInfoEntity
+import io.getstream.webrtc.sample.compose.db.DeviceInfoViewModel
+import io.getstream.webrtc.sample.compose.db.DeviceInfoViewModelFactory
 import io.getstream.webrtc.sample.compose.ui.theme.appColorScheme
 
 
@@ -34,6 +40,21 @@ fun HomeScreen(
 ) {
   val colors = appColorScheme()
   val scrollState = rememberScrollState()
+  val context = LocalContext.current
+
+  val deviceInfoViewModel: DeviceInfoViewModel = viewModel(
+    factory = DeviceInfoViewModelFactory(context)
+  )
+
+  LaunchedEffect(Unit) {
+    val deviceInfo = DeviceInfoEntity(
+      manufacture = Build.MANUFACTURER,
+      model = Build.MODEL,
+      status = true
+    )
+    deviceInfoViewModel.insert(deviceInfo)
+  }
+
 
   Scaffold(
     topBar = {

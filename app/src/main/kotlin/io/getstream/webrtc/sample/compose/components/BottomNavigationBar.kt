@@ -9,8 +9,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.getstream.webrtc.sample.compose.R
 import io.getstream.webrtc.sample.compose.ui.theme.appColorScheme
 
 @Composable
@@ -27,11 +29,11 @@ fun BottomNavigationBar(
   val colors = appColorScheme()
 
   val items = listOf(
-    NavItem("Monitoring", Icons.Default.Home),
-    NavItem("Activity", Icons.Default.Home),
-    NavItem("Explore", Icons.Default.Home),
-    NavItem("Premium", Icons.Default.Star),
-    NavItem("Setting", Icons.Default.Settings),
+    NavItem("Monitoring", R.drawable.ic_home),
+    NavItem("Activity",R.drawable.ic_activity  ),
+    NavItem("Devices", R.drawable.ic_device ),
+    NavItem("Premium", R.drawable.ic_start ),
+    NavItem("Setting", R.drawable.ic_settings ),
   )
 
   NavigationBar(
@@ -44,9 +46,8 @@ fun BottomNavigationBar(
         onClick = {
           when (item.label) {
             "Monitoring" -> onMonitoringClick()
-
             "Setting" -> onSettingsClick()
-            "Explore" -> onExploreClick()
+            "Devices" -> onExploreClick()
             "Premium" -> onPremiumClick()
             "Activity" -> onActivityClick()
             else -> onItemSelected(index)
@@ -55,7 +56,7 @@ fun BottomNavigationBar(
         icon = {
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
-              imageVector = item.icon,
+              painter = painterResource(id = item.iconResId),
               contentDescription = item.label,
               tint = if (selectedIndex == index)
                 colors.primary else colors.onSurface.copy(alpha = 0.5f),
@@ -78,4 +79,4 @@ fun BottomNavigationBar(
   }
 }
 
-data class NavItem(val label: String, val icon: ImageVector)
+data class NavItem(val label: String, val iconResId: Int)

@@ -57,11 +57,9 @@ fun ActivityScreen(
     containerColor = colors.background,
     topBar = {
       TopAppBar(
-        title = { Text("Baby Activities Timeline") },
+        title = { Text("BABY ACTIVITY TIMELINE") },
         navigationIcon = {
-          IconButton(onClick = onBackClick) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-          }
+
         }
       )
     }
@@ -365,7 +363,7 @@ fun CategoryItem(
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-          text = "Model is $percentage% confident",
+          text = "NaniBot is $percentage% confident",
           fontSize = 12.sp,
           style = typography.bodyMedium.copy(
             color = if (isDarkTheme) Color.LightGray else Color.DarkGray

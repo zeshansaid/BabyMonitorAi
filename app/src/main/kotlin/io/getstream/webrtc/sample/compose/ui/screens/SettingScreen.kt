@@ -69,14 +69,14 @@ fun SettingScreen() {
 
           SettingRow(
             title = "Frequently Asked Questions",
-            trailingIcon = painterResource(id = R.drawable.svg_right),
+            trailingIcon = painterResource(id = R.drawable.plus_ic),
             onClick = {
               webUrlToShow = "https://en.wikipedia.org/wiki/Main_Page"
             }
           )
           SettingRow(
             title = "Chat with Us",
-            trailingIcon = painterResource(id = R.drawable.svg_right),
+            trailingIcon = painterResource(id = R.drawable.plus_ic),
             onClick = {
               webUrlToShow = "https://en.wikipedia.org/wiki/Main_Page"
             }
@@ -102,21 +102,21 @@ fun SettingScreen() {
 
           SettingRow(
             title = "Rate & Review AI Infant Monitor",
-            trailingIcon = painterResource(id = R.drawable.svg_right),
+            trailingIcon = painterResource(id = R.drawable.plus_ic),
             onClick = {
               webUrlToShow = "https://en.wikipedia.org/wiki/Main_Page"
             }
           )
           SettingRow(
             title = "Terms of Services",
-            trailingIcon = painterResource(id = R.drawable.svg_right),
+            trailingIcon = painterResource(id = R.drawable.plus_ic),
             onClick = {
               webUrlToShow = "https://en.wikipedia.org/wiki/Main_Page"
             }
           )
           SettingRow(
             title = "Privacy Policy",
-            trailingIcon = painterResource(id = R.drawable.svg_right),
+            trailingIcon = painterResource(id = R.drawable.plus_ic),
             onClick = {
               webUrlToShow = "https://en.wikipedia.org/wiki/Main_Page"
             }
