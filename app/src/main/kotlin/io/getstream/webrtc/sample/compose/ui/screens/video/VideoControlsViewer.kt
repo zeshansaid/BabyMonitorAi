@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 
@@ -22,10 +23,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import io.getstream.webrtc.sample.compose.R
+import io.getstream.webrtc.sample.compose.ui.screens.MusicBottomSheet
 
 @Composable
 fun VideoControlsViewer(
@@ -36,6 +39,9 @@ fun VideoControlsViewer(
 ) {
   var torchOn by remember { mutableStateOf(false) }
   var brightnessHigh by remember { mutableStateOf(false) }
+  var showMusicBottomSheet by remember { mutableStateOf(false) }
+
+
   val brightnessIcon = if (brightnessHigh) {
     R.drawable.flip_cam_round
   } else {
@@ -46,6 +52,8 @@ fun VideoControlsViewer(
   } else {
     R.drawable.torch_off
   }
+
+
   Row(
     modifier = modifier
       .background(colorResource(R.color.app_color))
@@ -66,7 +74,7 @@ fun VideoControlsViewer(
           onToggleTorch()
         }
         .padding(10.dp),
-      )
+    )
 
     // Brightness Toggle Button
     Image(
@@ -82,6 +90,19 @@ fun VideoControlsViewer(
         .padding(10.dp)
     )
 
+    // Music List Button
+    Image(
+      painter = painterResource(id = R.drawable.ic_baby_song),
+      contentDescription = "baby music",
+      modifier = Modifier
+        .size(64.dp)
+        .clip(CircleShape)
+        .clickable {
+          showMusicBottomSheet = true
+        }
+        .padding(10.dp),
+    )
+
     // End Call Button
     Image(
       painter = painterResource(id = R.drawable.end_session),
@@ -94,6 +115,19 @@ fun VideoControlsViewer(
         }
         .padding(10.dp),
     )
+
+    // Music Bottom Sheet
+    if (showMusicBottomSheet) {
+      MusicBottomSheet(
+        onDismiss = { showMusicBottomSheet = false },
+        onPlay = {
+          // Handle play action
+          showMusicBottomSheet = false
+        }
+      )
+    }
+
+
   }
 }
 

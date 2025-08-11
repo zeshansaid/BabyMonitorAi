@@ -16,6 +16,7 @@ val DarkSecondaryTransparent = Color(0xB9795391) // #1DB954 with 26 hex alpha = 
 val LightColors = lightColorScheme(
     primary = Color(0xFF2196F3),
     onPrimary = Color.White,
+    onSurfaceVariant = Color(0xFF757575),
     background = Color.White,
     onBackground = Color.Black,
     surface = Color.White,
@@ -27,11 +28,12 @@ val LightColors = lightColorScheme(
 val DarkColors = darkColorScheme(
     primary = Color(0xFFBB86FC),
     onPrimary = Color.White,
+    onSurfaceVariant = Color(0xFFB0B0B0),
     background = Color(0xFF121212),
     onBackground = Color.White,
     surface = Color(0xFF121212),
     onSurface = Color.LightGray,
-    secondary = DarkSecondaryTransparent // ✅ updated
+    secondary = DarkSecondaryTransparent
 )
 
 @Composable

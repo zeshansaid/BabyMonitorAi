@@ -2,6 +2,7 @@ package io.getstream.webrtc.sample.compose.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -27,10 +28,16 @@ import androidx.compose.ui.unit.sp
 import io.getstream.webrtc.sample.compose.R
 import io.getstream.webrtc.sample.compose.components.SettingRow
 import io.getstream.webrtc.sample.compose.components.WebPageView
+import io.getstream.webrtc.sample.compose.ui.theme.DarkColors
+import io.getstream.webrtc.sample.compose.ui.theme.LightColors
 
 
 @Composable
 fun SettingScreen() {
+  val isDark = isSystemInDarkTheme()
+  val colors = if (isDark) DarkColors else LightColors
+
+  val bgColor = if (isDark) Color(0xFF20242A) else Color.White
 
   var webUrlToShow by remember { mutableStateOf<String?>(null) }
 
@@ -43,13 +50,14 @@ fun SettingScreen() {
   } else {
     Box(
       modifier = Modifier
-        .background(Color(0xFF20242A))
+        .background(colors.background)
         .fillMaxSize(),
     ) {
 
       Column {
         Spacer(
           modifier = Modifier.height(48.dp)
+
         )
 
 //----------------------------------------------------------//
@@ -62,7 +70,7 @@ fun SettingScreen() {
           fontWeight = FontWeight.ExtraBold,
           fontSize = 20.sp,
           text = "Help Center",
-          color = colorResource(R.color.white),
+          color = colors.onBackground,
           style = MaterialTheme.typography.titleMedium
         )
         Column {
@@ -95,7 +103,7 @@ fun SettingScreen() {
           fontSize = 20.sp,
           fontWeight = FontWeight.ExtraBold,
           text = "About",
-          color = colorResource(R.color.white),
+          color = colors.onBackground,
           style = MaterialTheme.typography.titleMedium
         )
         Column {

@@ -2,6 +2,7 @@ package io.getstream.webrtc.sample.compose.ui.screens.stage
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -32,8 +34,10 @@ import io.getstream.webrtc.sample.compose.R
 import io.getstream.webrtc.sample.compose.components.AnimatedPreloader
 import io.getstream.webrtc.sample.compose.ui.theme.AppGreen
 import io.getstream.webrtc.sample.compose.ui.theme.AppRed
+import io.getstream.webrtc.sample.compose.ui.theme.DarkColors
 
 import io.getstream.webrtc.sample.compose.ui.theme.Gray800
+import io.getstream.webrtc.sample.compose.ui.theme.LightColors
 import io.getstream.webrtc.sample.compose.ui.theme.robotoFont
 import io.getstream.webrtc.sample.compose.webrtc.WebRTCSessionState
 
@@ -44,9 +48,11 @@ fun StageScreen(
   Box(
     modifier = Modifier
       .fillMaxSize()
-      .background(colorResource(R.color.app_color))
+
   ) {
     var enabledCall by remember { mutableStateOf(false) }
+    val isDark = isSystemInDarkTheme()
+    val colors = if (isDark) DarkColors else LightColors
 
     val text = when (state) {
       WebRTCSessionState.Offline -> {
@@ -75,60 +81,79 @@ fun StageScreen(
       }
     }
 
+
     Box(
       modifier = Modifier
         .fillMaxSize()
-        .background(colorResource(R.color.app_color)),
-
-      ) {
-
-//
-      Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-          .fillMaxSize()
-
-      ) {
-        AnimatedPreloader(
-          animationResId = R.raw.connecting,
-          modifier = Modifier.size(300.dp)
-        )
-      }
-//
-      Column(
-        modifier = Modifier
-          .align(Alignment.BottomCenter)
-          .padding(start = 32.dp, end = 32.dp, bottom = 40.dp)
-      ) {
-        Button(
+        ,
+    ) {
+      Column(modifier = Modifier.fillMaxSize()) {
+        // Top 50% — Animated Preloader
+        Column(
           modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp),
-          enabled = enabledCall,
-          onClick = { onJoinCall.invoke() },
-          colors = ButtonDefaults.buttonColors(
-            containerColor = AppGreen, // for enabled = true
-            contentColor = colorResource(R.color.white),
-            disabledContainerColor = AppRed, // force red background when disabled
-            disabledContentColor = colorResource(R.color.white) // white text when disabled
+            .weight(1f)
+            .fillMaxWidth(),
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.Bottom
+        )
+        {
+          AnimatedPreloader(
+            animationResId = R.raw.connecting,
+            modifier = Modifier
+              .width(300.dp).height(200.dp)
           )
 
-
-        ) {
           Text(
-            text = text,
-            fontSize = 24.sp,
+            text = "Initializing Secure Connection",
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = robotoFont
+            fontFamily = robotoFont,
+            color = colors.onBackground
           )
+          Text(
+            text = "This will only take a moment",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = robotoFont,
+            color = colors.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp)
+          )
+
         }
 
+        // Bottom 50% — Button
+        Column(
+          modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+            .padding(start = 32.dp, end = 32.dp, bottom = 40.dp),
+          verticalArrangement = Arrangement.Bottom
+        )
+        {
+          Button(
+            modifier = Modifier
+              .fillMaxWidth()
+              .height(50.dp),
+            enabled = enabledCall,
+            onClick = { onJoinCall.invoke() },
+            colors = ButtonDefaults.buttonColors(
+              containerColor = colors.primary,
+              contentColor = colors.onPrimary,
+              disabledContainerColor = AppRed,
+              disabledContentColor = colorResource(R.color.white)
+            )
+          ) {
+            Text(
+              text = text,
+              fontSize = 24.sp,
+              fontWeight = FontWeight.Bold,
+              fontFamily = robotoFont
+            )
+          }
 
-        Spacer(modifier = Modifier.height(32.dp))
+          Spacer(modifier = Modifier.height(32.dp))
+        }
       }
-
-
     }
 
 
