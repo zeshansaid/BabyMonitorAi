@@ -6,55 +6,30 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.mediapipe.tasks.audio.core.RunningMode
-import io.getstream.webrtc.sample.compose.components.AnimatedPreloader
-import io.getstream.webrtc.sample.compose.components.Scanner
 
 import io.getstream.webrtc.sample.compose.db.CategoryViewModel
 import io.getstream.webrtc.sample.compose.db.CategoryViewModelFactory
 import io.getstream.webrtc.sample.compose.maincontent.QrScreenContent
-import io.getstream.webrtc.sample.compose.ui.screens.ScanSuccessScreen
+import io.getstream.webrtc.sample.compose.ui.screens.MusicPlayerSheet
 import io.getstream.webrtc.sample.compose.ui.screens.ViewerSessionSetupScreen
 import io.getstream.webrtc.sample.compose.ui.screens.stage.StageScreen
 import io.getstream.webrtc.sample.compose.ui.screens.video.VideoCallScreen
-import io.getstream.webrtc.sample.compose.ui.theme.AppGreen
 import io.getstream.webrtc.sample.compose.ui.theme.DarkColors
-import io.getstream.webrtc.sample.compose.ui.theme.Gray0
-import io.getstream.webrtc.sample.compose.ui.theme.Gray300
 import io.getstream.webrtc.sample.compose.ui.theme.LightColors
 import io.getstream.webrtc.sample.compose.ui.theme.WebrtcSampleComposeTheme
-import io.getstream.webrtc.sample.compose.ui.theme.robotoFont
 import io.getstream.webrtc.sample.compose.voiceclassification.AudioClassifierHelper
 import io.getstream.webrtc.sample.compose.voiceclassification.CategoryDTO
 import io.getstream.webrtc.sample.compose.webrtc.SignalingClient
@@ -110,6 +85,10 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
         var onCallScreen by remember { mutableStateOf(false) }
         var isSessionInitialized by remember { mutableStateOf(false) }
         var isCallStarted by remember { mutableStateOf(false) }
+        var showMusicBottomSheet by remember { mutableStateOf(false) }
+        var bottomSheetMessage by remember { mutableStateOf("") }
+
+
         val role by remember { mutableStateOf(initialRole) }
         val receivedCategories = remember { mutableStateOf<List<CategoryDTO>>(emptyList()) }
 
@@ -120,6 +99,21 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
         requestPermissions(
           arrayOf(Manifest.permission.RECORD_AUDIO), 0
         )
+
+
+        /*
+        * Show Music Player Sheet
+        * */
+        //show  NoPremium BottomSheet
+        if (showMusicBottomSheet) {
+          MusicPlayerSheet(
+            message = bottomSheetMessage,
+            onDismiss = { showMusicBottomSheet = false },
+            onSubscribeClick = {
+
+            }
+          )
+        }
 
 
         /*
@@ -203,15 +197,31 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
 
         /*
         * Receive baby activities from BABY STATION FROM VOICE CLASSIFICATION
+        *  use these messages to play Music
         * */
         LaunchedEffect(AppUtils.sessionManager) {
 
-//          if (role == AppUtils.Role.STREAMER) {
-//            AppUtils.sessionManager?.signalingClient?.chatMessages?.collect { message ->
-//              Log.d(AppUtils.TAG, "Received message from viewer: $message")
-//              // You can add a Snack bar or a Composable list to show this in UI
-//            }
-//          }
+          if (role == AppUtils.Role.STREAMER) {
+
+            // We use these messages to play Music
+            AppUtils.sessionManager?.signalingClient?.chatMessages?.collect { message ->
+
+              Log.d(AppUtils.TAG, "Received message from viewer: $message")
+
+
+              if (!showMusicBottomSheet) {
+                bottomSheetMessage = message
+                showMusicBottomSheet = true
+              } else {
+                // Close then re-open
+                showMusicBottomSheet = false
+                kotlinx.coroutines.delay(300) // wait for dismiss animation
+                bottomSheetMessage = message
+                showMusicBottomSheet = true
+              }
+
+            }
+          }
 
           if (role == AppUtils.Role.VIEWER) {
             AppUtils.sessionManager?.signalingClient?.chatMessages?.collect { result ->
@@ -222,7 +232,6 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
                 // Try to parse the entire message as a JSON array of CategoryDTO
                 val type = object : TypeToken<List<CategoryDTO>>() {}.type
                 val receivedList: List<CategoryDTO> = Gson().fromJson(result, type)
-
                 // If successful, update the state to trigger recomposition
                 receivedCategories.value = receivedList
                 categoryViewModel.insertCategoryDTOs(receivedList)
@@ -283,21 +292,24 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
       ?.firstOrNull()
       ?.categories() ?: emptyList()
 
-//    val maxResults = 10
-//    if (results.size + categories.size > maxResults) {
-//      results.removeRange(0, results.size + categories.size - maxResults)
-//    }
-//    results.addAll(categories)
 
-//    AppUtils.sessionManager?.signalingClient?.sendCommand(
-//      SignalingCommand.MESSAGE,
-//      categories.toString()
-//    )
-    Log.d(AppUtils.TAG, "onResult in streamerr: $categories")
-    val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
-    val currentTime = formatter.format(Date()).lowercase()
+    // Baby & Child related label indexes from YAMNet taxonomy
+    val babyChildIndexes = setOf(4, 14, 20, 3, 5, 7, 13)
 
-    val dtoList = categories.map {
+
+    val formatter = SimpleDateFormat("HH:mm dd MMM", Locale.getDefault())
+    val currentTime = formatter.format(Date()) // Example: "12:32 25 Jun"
+
+    // Filter categories by our interest
+    val filteredCategories = categories.filter { it.index() in babyChildIndexes }
+
+    // If nothing matches, don't send
+    if (filteredCategories.isEmpty()) {
+      Log.d(AppUtils.TAG, "No baby/child sounds detected.")
+      return
+    }
+
+    val dtoList = filteredCategories.map {
       CategoryDTO(
         score = it.score(),
         index = it.index(),
@@ -307,12 +319,15 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
       )
     }
 
+
     val json = Gson().toJson(dtoList)
 
     AppUtils.sessionManager?.signalingClient?.sendCommand(
       SignalingCommand.MESSAGE,
       json
     )
+
+    Log.d(AppUtils.TAG, "Filtered baby/child categories sent: $dtoList")
 
 
   }

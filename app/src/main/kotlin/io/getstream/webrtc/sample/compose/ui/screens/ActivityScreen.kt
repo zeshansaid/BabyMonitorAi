@@ -32,6 +32,16 @@ import io.getstream.webrtc.sample.compose.db.CategoryViewModel
 import kotlin.random.Random
 
 
+val activityColorMap = mapOf(
+  4 to Color(0xFF8E44AD), // Babbling - Purple
+  14 to Color(0xFFFFC107), // Baby laughter - Amber/Yellow
+  20 to Color(0xFFE53935), // Baby cry - Red
+  3 to Color(0xFF1E88E5), // Child speech - Blue
+  5 to Color(0xFFFF5722), // Children shouting - Deep Orange
+  7 to Color(0xFF4CAF50), // Children playing - Green
+  13 to Color(0xFF9C27B0) // Child singing - Violet
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(
@@ -41,6 +51,8 @@ fun ActivityScreen(
 
   val categories by categoryViewModel.categories.collectAsState()
   val isLoading by categoryViewModel.isLoading.collectAsState()
+
+
 
 
   val colors = MaterialTheme.colorScheme
@@ -80,12 +92,11 @@ fun ActivityScreen(
 
       categories.isEmpty() -> {
         // Show "No activity" message
-        Box(
-          modifier = Modifier.fillMaxSize(),
-          contentAlignment = Alignment.Center
-        ) {
-          Text("No activity found.")
-        }
+        EmptyActivityScreen(
+          title = "Whoops!",
+          description = "We couldn't find any baby activity. Start monitoring to see sleep, cries and other events here.",
+
+        )
       }
 
       else -> {
@@ -325,10 +336,15 @@ fun CategoryItem(
           )
         }
 
+
+
+        val activityColor = activityColorMap[event.index] ?: Color.Gray
+
+
         Box(
           modifier = Modifier
             .size(32.dp)
-            .background(randomColor, CircleShape)
+            .background(activityColor, CircleShape)
             .zIndex(1f),
           contentAlignment = Alignment.Center
         ) {

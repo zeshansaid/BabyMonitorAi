@@ -56,9 +56,9 @@ fun VideoControlsViewer(
 
   Row(
     modifier = modifier
-      .background(colorResource(R.color.app_color))
-      .padding(12.dp)
-      .fillMaxWidth(),
+        .background(colorResource(R.color.app_color))
+        .padding(12.dp)
+        .fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceEvenly
   ) {
@@ -67,13 +67,13 @@ fun VideoControlsViewer(
       painter = painterResource(id = torchIcon),
       contentDescription = "Toggle Torch",
       modifier = Modifier
-        .size(64.dp)
-        .clip(CircleShape)
-        .clickable {
-          torchOn = !torchOn
-          onToggleTorch()
-        }
-        .padding(10.dp),
+          .size(64.dp)
+          .clip(CircleShape)
+          .clickable {
+              torchOn = !torchOn
+              onToggleTorch()
+          }
+          .padding(10.dp),
     )
 
     // Brightness Toggle Button
@@ -81,13 +81,13 @@ fun VideoControlsViewer(
       painter = painterResource(id = brightnessIcon),
       contentDescription = "Toggle Brightness",
       modifier = Modifier
-        .size(64.dp)
-        .clip(CircleShape)
-        .clickable {
-          brightnessHigh = !brightnessHigh
-          onToggleBrightness()
-        }
-        .padding(10.dp)
+          .size(64.dp)
+          .clip(CircleShape)
+          .clickable {
+              brightnessHigh = !brightnessHigh
+              onToggleBrightness()
+          }
+          .padding(10.dp)
     )
 
     // Music List Button
@@ -95,12 +95,13 @@ fun VideoControlsViewer(
       painter = painterResource(id = R.drawable.ic_baby_song),
       contentDescription = "baby music",
       modifier = Modifier
-        .size(64.dp)
-        .clip(CircleShape)
-        .clickable {
-          showMusicBottomSheet = true
-        }
-        .padding(10.dp),
+          .size(64.dp)
+          .clip(CircleShape)
+          .clickable {
+              showMusicBottomSheet = true
+
+          }
+          .padding(10.dp),
     )
 
     // End Call Button
@@ -108,20 +109,21 @@ fun VideoControlsViewer(
       painter = painterResource(id = R.drawable.end_session),
       contentDescription = "End Call",
       modifier = Modifier
-        .size(64.dp)
-        .clip(CircleShape)
-        .clickable {
-          onLeaveCall()
-        }
-        .padding(10.dp),
+          .size(64.dp)
+          .clip(CircleShape)
+          .clickable {
+              onLeaveCall()
+          }
+          .padding(10.dp),
     )
 
     // Music Bottom Sheet
     if (showMusicBottomSheet) {
       MusicBottomSheet(
-        onDismiss = { showMusicBottomSheet = false },
+        onDismiss = {
+          showMusicBottomSheet = false
+        },
         onPlay = {
-          // Handle play action
           showMusicBottomSheet = false
         }
       )

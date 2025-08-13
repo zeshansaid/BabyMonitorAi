@@ -17,7 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.getstream.webrtc.sample.compose.AppUtils
 import io.getstream.webrtc.sample.compose.R
+import io.getstream.webrtc.sample.compose.webrtc.SignalingCommand
 
 data class MusicCategoryDrawable(
   val title: String,
@@ -31,10 +33,20 @@ fun MusicBottomSheet(
   onDismiss: () -> Unit,
   onPlay: () -> Unit
 ) {
+
+  val sheetState = rememberModalBottomSheetState(
+    skipPartiallyExpanded = false,
+  )
+
+  LaunchedEffect(Unit) {
+    sheetState.partialExpand() // open at partially expanded
+  }
+
   ModalBottomSheet(
     onDismissRequest = onDismiss,
+    sheetState = sheetState,
     containerColor = Color.Transparent,
-    dragHandle = null
+    dragHandle = null,
   ) {
     MusicBottomSheetContent(
       onClose = onDismiss,
@@ -43,12 +55,14 @@ fun MusicBottomSheet(
   }
 }
 
+
+
+
 @Composable
 fun MusicBottomSheetContent(
   onClose: () -> Unit,
   onPlay: () -> Unit
 ) {
-  // Using your existing drawable or a single music icon for all categories
   val musicCategories = listOf(
     MusicCategoryDrawable("Peaceful Piano Music", "Relaxing Piano Music", R.drawable.ic_music_list),
     MusicCategoryDrawable("Pop Music", "Arash", R.drawable.ic_music_list),
@@ -56,6 +70,8 @@ fun MusicBottomSheetContent(
     MusicCategoryDrawable("Party Music", "Miley Cyrus", R.drawable.ic_music_list),
     MusicCategoryDrawable("Meditation Music", "DJ Snake", R.drawable.ic_music_list)
   )
+
+  var selectedCategory by remember { mutableStateOf<String?>(null) }
 
   Box(
     modifier = Modifier
@@ -75,7 +91,7 @@ fun MusicBottomSheetContent(
     Column(
       modifier = Modifier.fillMaxWidth()
     ) {
-      // Top indicator bar
+      // Indicator bar
       Box(
         modifier = Modifier
           .width(40.dp)
@@ -86,7 +102,6 @@ fun MusicBottomSheetContent(
 
       Spacer(modifier = Modifier.height(20.dp))
 
-      // Title and subtitle
       Text(
         text = "Soothing Sounds For Baby",
         color = Color.White,
@@ -115,13 +130,18 @@ fun MusicBottomSheetContent(
       musicCategories.forEach { category ->
         MusicCategoryItemDrawable(
           category = category,
-          modifier = Modifier.padding(vertical = 8.dp)
+          isSelected = category.title == selectedCategory,
+          modifier = Modifier.padding(vertical = 8.dp),
+          onClick = {
+            selectedCategory = category.title
+            sendTitleMessage(category.title) //send song as message
+            println("Selected category: ${category.title}")
+          }
         )
       }
 
       Spacer(modifier = Modifier.height(32.dp))
 
-      // Bottom section
       Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -135,31 +155,22 @@ fun MusicBottomSheetContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Action buttons
         Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-          // Play button
           Button(
             onClick = onPlay,
             colors = ButtonDefaults.buttonColors(
-              containerColor = Color(0xFFE91E63) // Pink color
+              containerColor = Color(0xFFE91E63)
             ),
             shape = RoundedCornerShape(25.dp),
             modifier = Modifier
               .width(120.dp)
               .height(50.dp)
           ) {
-            Text(
-              text = "Play",
-              color = Color.White,
-              fontSize = 16.sp,
-              fontWeight = FontWeight.Medium
-            )
+            Text("Play", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium)
           }
-
-          // Close button
           Button(
             onClick = onClose,
             colors = ButtonDefaults.buttonColors(
@@ -170,12 +181,7 @@ fun MusicBottomSheetContent(
               .width(120.dp)
               .height(50.dp)
           ) {
-            Text(
-              text = "Close",
-              color = Color.White,
-              fontSize = 16.sp,
-              fontWeight = FontWeight.Medium
-            )
+            Text("Close", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium)
           }
         }
       }
@@ -188,21 +194,29 @@ fun MusicBottomSheetContent(
 @Composable
 fun MusicCategoryItemDrawable(
   category: MusicCategoryDrawable,
-  modifier: Modifier = Modifier
+  isSelected: Boolean,
+  modifier: Modifier = Modifier,
+  onClick: () -> Unit
 ) {
   Row(
     modifier = modifier
       .fillMaxWidth()
-      .clickable { /* Handle category selection */ }
-      .padding(horizontal = 4.dp, vertical = 8.dp),
+      .clip(RoundedCornerShape(12.dp))
+      .background(
+        if (isSelected) Color.White.copy(alpha = 0.25f)
+        else Color.Transparent
+      )
+      .clickable { onClick() }
+      .padding( 8.dp),
     verticalAlignment = Alignment.CenterVertically
   ) {
-    // Category icon
+
     Box(
       modifier = Modifier
         .size(50.dp)
         .background(
-          Color.White.copy(alpha = 0.15f),
+          if (isSelected) Color(0xFFE91E63)
+          else Color.White.copy(alpha = 0.15f),
           RoundedCornerShape(12.dp)
         )
         .padding(12.dp),
@@ -218,10 +232,10 @@ fun MusicCategoryItemDrawable(
 
     Spacer(modifier = Modifier.width(16.dp))
 
-    // Category text
     Column(
       modifier = Modifier.weight(1f)
-    ) {
+    )
+    {
       Text(
         text = category.title,
         color = Color.White,
@@ -235,7 +249,6 @@ fun MusicCategoryItemDrawable(
       )
     }
 
-    // More options indicator
     Row {
       repeat(3) {
         Box(
@@ -246,5 +259,17 @@ fun MusicCategoryItemDrawable(
         if (it < 2) Spacer(modifier = Modifier.width(4.dp))
       }
     }
+
+
+
   }
 }
+
+
+fun sendTitleMessage(title: String) {
+  AppUtils.sessionManager?.signalingClient?.sendCommand(
+    SignalingCommand.MESSAGE,
+    title
+  )
+}
+

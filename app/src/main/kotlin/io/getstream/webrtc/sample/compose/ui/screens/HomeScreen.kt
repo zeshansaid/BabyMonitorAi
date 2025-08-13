@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -100,6 +101,7 @@ fun HomeScreen(
           color = colors.primary,
           fontSize = 36.sp,
           fontWeight = FontWeight.Bold,
+          fontStyle = FontStyle.Italic,
           style = MaterialTheme.typography.titleLarge
         )
       }
@@ -133,12 +135,13 @@ fun HomeScreen(
           elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 6.dp)
         ) {
           Icon(
-            imageVector = Icons.Default.Face,
+            painter = painterResource(id = R.drawable.ic_babyzone),
             contentDescription = "Baby Icon",
             tint = colors.onPrimary,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier
+              .size(20.dp)
           )
-          Spacer(modifier = Modifier.width(8.dp))
+          Spacer(modifier = Modifier.width(16.dp))
           Text("Baby Station", color = colors.onPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
         }
 
@@ -158,13 +161,15 @@ fun HomeScreen(
             brush = androidx.compose.ui.graphics.SolidColor(colors.primary)
           )
         ) {
+
           Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = "Parent Icon",
+            painter = painterResource(id = R.drawable.ic_parentzone),
+            contentDescription = "Baby Icon",
             tint = colors.primary,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier
+              .size(20.dp)
           )
-          Spacer(modifier = Modifier.width(8.dp))
+          Spacer(modifier = Modifier.width(16.dp))
           Text("Parent Station", color = colors.primary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
         }
       }
