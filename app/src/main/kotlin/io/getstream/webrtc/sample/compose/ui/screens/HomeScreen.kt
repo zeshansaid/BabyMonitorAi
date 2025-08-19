@@ -62,13 +62,13 @@ fun HomeScreen(
       TopAppBar(
         title = {},
         navigationIcon = {
-          IconButton(onClick = onBackClick) {
-            Icon(
-              imageVector = Icons.Default.ArrowBack,
-              contentDescription = "Back",
-              tint = colors.primary
-            )
-          }
+//          IconButton(onClick = onBackClick) {
+//            Icon(
+//              imageVector = Icons.Default.ArrowBack,
+//              contentDescription = "Back",
+//              tint = colors.primary
+//            )
+//          }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.background),
         modifier = Modifier.fillMaxWidth()

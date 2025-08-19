@@ -51,7 +51,7 @@
 
 
     <service
-      android:name=".services.StreamService"
+      android:name=".services.AlertService"
       android:enabled="true"
       android:exported="false"
       android:foregroundServiceType="dataSync"

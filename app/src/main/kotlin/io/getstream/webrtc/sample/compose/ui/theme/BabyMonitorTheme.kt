@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.sp
 import io.getstream.webrtc.sample.compose.R
 
 
-val DarkSecondaryTransparent = Color(0xB9795391) // #1DB954 with 26 hex alpha = 66 decimal = 0x42
+val DarkSecondaryTransparent = Color(0xB9795391)  
 
 // Light Theme Colors
 val LightColors = lightColorScheme(

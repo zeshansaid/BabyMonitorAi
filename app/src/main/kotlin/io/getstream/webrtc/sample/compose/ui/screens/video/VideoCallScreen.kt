@@ -261,7 +261,7 @@ fun VideoCallScreen(role: AppUtils.Role) {
     }
 
     else if (role == AppUtils.Role.VIEWER) {
-      VideoControlsViewer(
+      VideoControlsViewer (
         modifier = Modifier
           .fillMaxWidth()
           .padding(16.dp)

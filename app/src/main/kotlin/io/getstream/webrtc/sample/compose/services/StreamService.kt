@@ -39,19 +39,16 @@ import org.webrtc.VideoTrack
 
 
 class StreamService : Service() {
+  private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
   val sessionManager = AppUtils.sessionManager
-
-  private val TAG = "StreamServicee"
   private lateinit var notificationBuilder: NotificationCompat.Builder
 
   // Coroutine scope tied to service lifecycle
-  private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
   @RequiresApi(Build.VERSION_CODES.O)
   override fun onCreate() {
     startOfferForegroundServices() // ensures notification is shown immediately
-
   }
 
   companion object {
@@ -107,7 +104,6 @@ class StreamService : Service() {
                 notificationBuilder
                   .setContentText("Detected: $labels")
                   .setSilent(true)
-
                 val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.notify(1111, notificationBuilder.build())
               }
@@ -123,14 +119,13 @@ class StreamService : Service() {
   }
 
 
-
   private suspend fun trackSeconds() {
     var secondsPassed = 0
     val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
     while (true) {
 //            Thread.sleep(1000)
-      delay(1000) // Non-blocking delay
+      delay(1000)
       secondsPassed++
       notificationBuilder
         .setContentText("Offer countdown: $secondsPassed seconds running...")

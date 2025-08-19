@@ -109,12 +109,13 @@ fun SettingScreen() {
           SettingRow(
             title = "Feedback & Suggestions",
             trailingIcon = painterResource(id = R.drawable.plus_ic),
-            onClick = { webUrlToShow = "https://en.wikipedia.org/wiki/Main_Page" }
+            onClick = { showFeedbackScreen = true }
+
           )
           SettingRow(
             title = "Share App Link",
             trailingIcon = painterResource(id = R.drawable.plus_ic),
-            onClick = { showFeedbackScreen = true }
+            onClick = { webUrlToShow = "https://en.wikipedia.org/wiki/Main_Page" }
           )
         }
 

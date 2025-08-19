@@ -1,6 +1,7 @@
 package io.getstream.webrtc.sample.compose
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -23,6 +24,7 @@ import com.google.mediapipe.tasks.audio.core.RunningMode
 import io.getstream.webrtc.sample.compose.db.CategoryViewModel
 import io.getstream.webrtc.sample.compose.db.CategoryViewModelFactory
 import io.getstream.webrtc.sample.compose.maincontent.QrScreenContent
+import io.getstream.webrtc.sample.compose.services.AlertService
 import io.getstream.webrtc.sample.compose.ui.screens.MusicPlayerSheet
 import io.getstream.webrtc.sample.compose.ui.screens.ViewerSessionSetupScreen
 import io.getstream.webrtc.sample.compose.ui.screens.stage.StageScreen
@@ -50,6 +52,10 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
   @RequiresApi(Build.VERSION_CODES.TIRAMISU)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+
+
+
 
 
     /*
@@ -89,8 +95,15 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
         var bottomSheetMessage by remember { mutableStateOf("") }
 
 
-        val role by remember { mutableStateOf(initialRole) }
+        var role by remember { mutableStateOf(initialRole) }
+
         val receivedCategories = remember { mutableStateOf<List<CategoryDTO>>(emptyList()) }
+
+
+
+
+
+
 
 
         /*
@@ -165,15 +178,28 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
         if (role == AppUtils.Role.VIEWER && !isCallStarted && !isSessionInitialized) {
           ViewerSessionSetupScreen(
             onSessionReady = { scannedRoomId ->
-              AppUtils.sessionManager = WebRtcSessionManagerImpl(
-                context = this@MainActivity,
-                signalingClient = SignalingClient(scannedRoomId),
-                peerConnectionFactory = StreamPeerConnectionFactory(this@MainActivity),
-                role = role
-              )
 
-              isSessionInitialized = true
-              isCallStarted = true
+              val serviceIntent = Intent(this@MainActivity, AlertService::class.java).apply {
+                putExtra("ROOM_ID", scannedRoomId)
+              }
+
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
+              } else {
+                startService(serviceIntent)
+              }
+
+
+
+//              AppUtils.sessionManager = WebRtcSessionManagerImpl(
+//                context = this@MainActivity,
+//                signalingClient = SignalingClient(scannedRoomId),
+//                peerConnectionFactory = StreamPeerConnectionFactory(this@MainActivity),
+//                role = role
+//              )
+
+//              isSessionInitialized = true
+//              isCallStarted = true
             },
             onCancelled = {
               finish()
@@ -182,22 +208,34 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
         }
 
 
-        /*
-        * just for testing messaging on WEBRTC
-        * */
-        if (isSessionInitialized && role == AppUtils.Role.VIEWER) {
+        //
 
-          var message by remember { mutableStateOf("Hello from $role") }
-          AppUtils.sessionManager?.signalingClient?.sendCommand(
-            SignalingCommand.MESSAGE,
-            message
-          )
+        LaunchedEffect(Unit) {
+          while (AppUtils.sessionManager == null) {
+            kotlinx.coroutines.delay(200)
+          }
+          Log.d(AppUtils.TAG, "SessionManager is ready from service")
+          isSessionInitialized = true
+          isCallStarted = true
         }
 
 
         /*
-        * Receive baby activities from BABY STATION FROM VOICE CLASSIFICATION
-        *  use these messages to play Music
+        * just for testing messaging on WEBRTC
+        * */
+//        if (isSessionInitialized && role == AppUtils.Role.VIEWER) {
+//
+//          var message by remember { mutableStateOf("Hello from $role") }
+//          AppUtils.sessionManager?.signalingClient?.sendCommand(
+//            SignalingCommand.MESSAGE,
+//            message
+//          )
+//        }
+
+
+        /*
+        * 1. Receive baby activities from BABY STATION FROM VOICE CLASSIFICATION
+        *  2. Receive  messages  from Parent STATION TO PLAY MUSIC
         * */
         LaunchedEffect(AppUtils.sessionManager) {
 
@@ -280,6 +318,7 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
       audioClassifierHelper.stopAudioClassification()
     }
   }
+
 
   override fun onError(error: String) {
     Log.d(AppUtils.TAG, "onError: $error")
