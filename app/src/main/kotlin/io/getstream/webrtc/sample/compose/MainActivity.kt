@@ -54,13 +54,9 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
     super.onCreate(savedInstanceState)
 
 
-
-
-
-
     /*
-    * get the selected Role either STREAMER or VIEWER from previous activity
-    * */
+    ? get the selected Role either STREAMER or VIEWER from previous activity
+    */
     val initialRole = when (intent.getStringExtra("ROLE")) {
       "STREAMER" -> AppUtils.Role.STREAMER
       "VIEWER" -> AppUtils.Role.VIEWER
@@ -68,16 +64,17 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
     }
 
     /*
-    * if STREAMER:
-    * Create an 32 ROOM ID:
-    * */
+    ? if STREAMER:
+    ? Create an 32 bit ROOM ID:
+    ?
+    */
     val randomRoomId =
       if (initialRole == AppUtils.Role.STREAMER) AppUtils.generate32BitRandomKey() else ""
 
 
     /*
-    * viewmodel for db
-    * */
+    ? viewmodel for db
+    */
     val categoryViewModel: CategoryViewModel by viewModels {
       CategoryViewModelFactory(this)
     }
@@ -91,50 +88,23 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
         var onCallScreen by remember { mutableStateOf(false) }
         var isSessionInitialized by remember { mutableStateOf(false) }
         var isCallStarted by remember { mutableStateOf(false) }
-        var showMusicBottomSheet by remember { mutableStateOf(false) }
-        var bottomSheetMessage by remember { mutableStateOf("") }
-
 
         var role by remember { mutableStateOf(initialRole) }
-
         val receivedCategories = remember { mutableStateOf<List<CategoryDTO>>(emptyList()) }
 
-
-
-
-
-
-
-
         /*
-        * ask for permission on audio for both STREAMER and  VIEWER
-        * */
+        ? ask for permission on audio for both STREAMER and  VIEWER
+        */
         requestPermissions(
           arrayOf(Manifest.permission.RECORD_AUDIO), 0
         )
 
-
         /*
-        * Show Music Player Sheet
-        * */
-        //show  NoPremium BottomSheet
-        if (showMusicBottomSheet) {
-          MusicPlayerSheet(
-            message = bottomSheetMessage,
-            onDismiss = { showMusicBottomSheet = false },
-            onSubscribeClick = {
-
-            }
-          )
-        }
-
-
-        /*
-        *  1. check role
-        *  2.ask camera permission
-        *  3. Show QR CODE
-        *  4. Create Session onDoneClicked
-        * */
+        ?  1. check role
+        ?  2.ask camera permission
+        ?  3. Show QR CODE
+        ?  4. Create Session onDoneClicked
+        */
 
         if (role == AppUtils.Role.STREAMER && !isCallStarted) {
 
@@ -169,37 +139,40 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
         }
 
         /*
-        * 1. check role
-        * 2. Show Scanner
-        * 3. SHOW SUCCESS SCANNED SCREEN
-        * 4. START SESSION
-        * */
+        ? 1. check role
+        ? 2. Show Scanner
+        ? 3. SHOW SUCCESS SCANNED SCREEN
+        ? 4. START SESSION
+        */
 
         if (role == AppUtils.Role.VIEWER && !isCallStarted && !isSessionInitialized) {
           ViewerSessionSetupScreen(
             onSessionReady = { scannedRoomId ->
 
+              /*
+              ? to use services
               val serviceIntent = Intent(this@MainActivity, AlertService::class.java).apply {
-                putExtra("ROOM_ID", scannedRoomId)
-              }
+                  putExtra("ROOM_ID", scannedRoomId)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                  startForegroundService(serviceIntent)
+                } else {
+                  startService(serviceIntent)
+                }
+               */
 
-              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
-              } else {
-                startService(serviceIntent)
-              }
+
+              AppUtils.sessionManager = WebRtcSessionManagerImpl(
+                context = this@MainActivity,
+                signalingClient = SignalingClient(scannedRoomId),
+                peerConnectionFactory = StreamPeerConnectionFactory(this@MainActivity),
+                role = role
+              )
+
+              isSessionInitialized = true
+              isCallStarted = true
 
 
-
-//              AppUtils.sessionManager = WebRtcSessionManagerImpl(
-//                context = this@MainActivity,
-//                signalingClient = SignalingClient(scannedRoomId),
-//                peerConnectionFactory = StreamPeerConnectionFactory(this@MainActivity),
-//                role = role
-//              )
-
-//              isSessionInitialized = true
-//              isCallStarted = true
             },
             onCancelled = {
               finish()
@@ -207,8 +180,8 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
           )
         }
 
-
-        //
+        /*
+       ? if using services then uncomment this
 
         LaunchedEffect(Unit) {
           while (AppUtils.sessionManager == null) {
@@ -219,48 +192,13 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
           isCallStarted = true
         }
 
+        */
 
         /*
-        * just for testing messaging on WEBRTC
-        * */
-//        if (isSessionInitialized && role == AppUtils.Role.VIEWER) {
-//
-//          var message by remember { mutableStateOf("Hello from $role") }
-//          AppUtils.sessionManager?.signalingClient?.sendCommand(
-//            SignalingCommand.MESSAGE,
-//            message
-//          )
-//        }
-
-
-        /*
-        * 1. Receive baby activities from BABY STATION FROM VOICE CLASSIFICATION
-        *  2. Receive  messages  from Parent STATION TO PLAY MUSIC
-        * */
+        ?  1. Receive baby activities from BABY STATION FROM VOICE CLASSIFICATION
+        ?  2. Receive  messages  from Parent STATION TO PLAY MUSIC
+        */
         LaunchedEffect(AppUtils.sessionManager) {
-
-          if (role == AppUtils.Role.STREAMER) {
-
-            // We use these messages to play Music
-            AppUtils.sessionManager?.signalingClient?.chatMessages?.collect { message ->
-
-              Log.d(AppUtils.TAG, "Received message from viewer: $message")
-
-
-              if (!showMusicBottomSheet) {
-                bottomSheetMessage = message
-                showMusicBottomSheet = true
-              } else {
-                // Close then re-open
-                showMusicBottomSheet = false
-                kotlinx.coroutines.delay(300) // wait for dismiss animation
-                bottomSheetMessage = message
-                showMusicBottomSheet = true
-              }
-
-            }
-          }
-
           if (role == AppUtils.Role.VIEWER) {
             AppUtils.sessionManager?.signalingClient?.chatMessages?.collect { result ->
 
@@ -282,8 +220,7 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
           }
         }
 
-//        ............................................................................................
-        // --- Screen switching ---
+        //? --------------- Screen switching -------------------//
         if (isSessionInitialized && AppUtils.sessionManager != null) {
           CompositionLocalProvider(LocalWebRtcSessionManager provides AppUtils.sessionManager!!) {
             val state by AppUtils.sessionManager!!.signalingClient.sessionStateFlow.collectAsState()
@@ -307,6 +244,8 @@ class MainActivity : ComponentActivity(), AudioClassifierHelper.ClassifierListen
             }
           }
         }
+
+
       }
     }
   }

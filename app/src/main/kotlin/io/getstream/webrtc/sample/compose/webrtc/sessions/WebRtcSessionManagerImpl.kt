@@ -7,6 +7,7 @@ import android.hardware.camera2.CameraMetadata
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
+import android.util.Log
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.core.content.getSystemService
@@ -258,7 +259,9 @@ class WebRtcSessionManagerImpl(
   }
 
   override fun enableMicrophone(enabled: Boolean) {
-    audioManager?.isMicrophoneMute = !enabled
+    // Update the local audio track state
+    localAudioTrack.setEnabled(enabled)
+//     audioManager?.isMicrophoneMute = !enabled
   }
 
   override fun enableCamera(enabled: Boolean) {
@@ -269,54 +272,6 @@ class WebRtcSessionManagerImpl(
     }
   }
 
-  //for streamer
-  override fun disconnect() {
-    // dispose audio & video tracks.
-
-    localAudioTrack.dispose()
-    localVideoTrack.dispose()
-    // Dispose audio source
-    audioSource.dispose()
-    // dispose audio handler and video capturer.
-    audioHandler.stop()
-    videoCapturer.stopCapture()
-    videoCapturer.dispose()
-    // Reset AudioManager mode
-    audioManager?.mode = AudioManager.MODE_NORMAL
-    audioManager?.isMicrophoneMute = false
-
-
-    // dispose signaling clients and socket.
-    signalingClient.dispose()
-//       Stop WebRTC's network monitoring to prevent receiver leaks
-    org.webrtc.NetworkMonitor.getInstance().stopMonitoring()
-  }
-
-  //for viewer
-  override fun disconnectRemoteConnection() {
-    try {
-      // Dispose remote tracks only once (or clear replayCache and track disposal manually)
-      remoteVideoTrackFlow.replayCache.forEach {
-        try {
-          it.dispose()
-        } catch (e: IllegalStateException) {
-          // Already disposed
-        }
-      }
-
-      // Stop audio handler (optional for viewer, but still safe)
-      audioHandler.stop()
-
-      // Reset AudioManager mode
-      audioManager?.mode = AudioManager.MODE_NORMAL
-      audioManager?.isMicrophoneMute = false
-
-      signalingClient.dispose()
-      org.webrtc.NetworkMonitor.getInstance().stopMonitoring()
-    } catch (e: Exception) {
-      e.printStackTrace()
-    }
-  }
 
   private suspend fun sendOffer() {
     val offer = peerConnection.createOffer().getOrThrow()
@@ -361,7 +316,6 @@ class WebRtcSessionManagerImpl(
       )
     )
   }
-
   private fun buildCameraCapturer(): VideoCapturer {
     val manager = cameraManager ?: throw RuntimeException("CameraManager was not initialized!")
 
@@ -386,7 +340,6 @@ class WebRtcSessionManagerImpl(
     val camera2Capturer = Camera2Capturer(context, cameraId, null)
     return camera2Capturer
   }
-
   private fun buildAudioConstraints(): MediaConstraints {
     val mediaConstraints = MediaConstraints()
     val items = listOf(
@@ -419,7 +372,6 @@ class WebRtcSessionManagerImpl(
       }
     }
   }
-
   private fun setupAudio() {
     logger.d { "[setupAudio] #sfu; no args" }
     audioHandler.start()
@@ -438,6 +390,69 @@ class WebRtcSessionManagerImpl(
       audioManager?.isSpeakerphoneOn = true
     }
   }
+  //for streamer
+  override fun disconnect() {
+    Log.d(AppUtils.TAG, "Disconnect called")
 
+    // Stop sending audio before disposing
+    try {
+      localAudioTrack.setEnabled(false)
+      peerConnection.connection.senders
+        .firstOrNull { it.track() == localAudioTrack }
+        ?.let { sender -> peerConnection.connection.removeTrack(sender) }
+    } catch (e: Exception) {
+      Log.e(AppUtils.TAG, "Error removing local audio track: ${e.message}")
+    }
+
+    // Dispose audio resources
+    try {
+      localAudioTrack.dispose()
+      audioSource.dispose()
+      audioHandler.stop()
+      audioManager?.mode = AudioManager.MODE_NORMAL
+      audioManager?.isMicrophoneMute = false
+    } catch (e: Exception) {
+      Log.e(AppUtils.TAG, "Error disposing audio resources: ${e.message}")
+    }
+
+    // Video cleanup
+    try {
+      localVideoTrack.dispose()
+      videoSource?.dispose()
+
+    } catch (e: Exception) {
+      Log.e(AppUtils.TAG, "Error disposing video resources: ${e.message}")
+    }
+
+    // Close PeerConnection
+    peerConnection.connection.dispose()
+    // dispose signaling clients and socket.
+    signalingClient.dispose()
+
+  }
+  override fun disconnectRemoteConnection() {
+    // Stop remote audio tracks
+    peerConnection.connection.transceivers.forEach { transceiver ->
+      val track = transceiver.receiver.track()
+      if (track is AudioTrack) {
+        try {
+          track.setEnabled(false)
+          track.dispose()
+        } catch (e: Exception) {
+          Log.e(AppUtils.TAG, "Error disposing remote audio track: ${e.message}")
+        }
+      }
+    }
+
+    // Dispose remote video
+    remoteVideoTrackFlow.replayCache.forEach {
+      try {
+        it.dispose()
+      } catch (e: IllegalStateException) {
+        // Already disposed
+      }
+    }
+
+  }
 
 }

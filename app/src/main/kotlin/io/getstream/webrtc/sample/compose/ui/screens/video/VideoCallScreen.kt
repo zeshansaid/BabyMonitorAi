@@ -48,6 +48,7 @@ import io.getstream.webrtc.sample.compose.R
 import io.getstream.webrtc.sample.compose.components.AnimatedPreloader
 import io.getstream.webrtc.sample.compose.components.KeepScreenOn
 import io.getstream.webrtc.sample.compose.ui.components.VideoRenderer
+import io.getstream.webrtc.sample.compose.ui.screens.MusicPlayerSheet
 import io.getstream.webrtc.sample.compose.ui.theme.AppGreen
 import io.getstream.webrtc.sample.compose.webrtc.SignalingClient
 import io.getstream.webrtc.sample.compose.webrtc.SignalingCommand
@@ -55,6 +56,7 @@ import io.getstream.webrtc.sample.compose.webrtc.sessions.LocalWebRtcSessionMana
 import io.github.crow_misia.libyuv.RowStride
 import io.github.crow_misia.libyuv.Yuv.convertI420ToARGB
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.webrtc.VideoFrame
 import org.webrtc.VideoTrack
@@ -72,6 +74,10 @@ fun VideoCallScreen(role: AppUtils.Role) {
   val scope = rememberCoroutineScope()
   var isTorchRequested by remember { mutableStateOf(false) }
   var isBrightnessHigh by remember { mutableStateOf(false) }
+  val coroutineScope = rememberCoroutineScope()
+  var callMediaState by remember { mutableStateOf(CallMediaState()) }
+  val activity = (LocalContext.current as? Activity)
+
 
   LaunchedEffect(key1 = Unit) {
     sessionManager.onSessionScreenReady()
@@ -97,7 +103,6 @@ fun VideoCallScreen(role: AppUtils.Role) {
       videoTrack = localVideoTrackState
     }
 
-    var callMediaState by remember { mutableStateOf(CallMediaState()) }
 
     if (videoTrack != null) {
 
@@ -204,11 +209,15 @@ fun VideoCallScreen(role: AppUtils.Role) {
       }
     }
 
-    val activity = (LocalContext.current as? Activity)
+
+
     if (role == AppUtils.Role.STREAMER) {
       // Torch state
       var isTorchOn by remember { mutableStateOf(false) }
-      // Message receiver for torch toggle
+      var showMusicBottomSheet by remember { mutableStateOf(false) }
+      var bottomSheetMessage by remember { mutableStateOf("") }
+
+      // Message receiver for torch/brightness toggle & bottom sheet
       LaunchedEffect(Unit) {
         AppUtils.sessionManager?.signalingClient?.setOnMessageReceivedListener(object :
           SignalingClient.OnMessageReceivedListener {
@@ -216,14 +225,29 @@ fun VideoCallScreen(role: AppUtils.Role) {
             when (message.lowercase()) {
               "torch_on" -> toggleTorch(context, true) { isTorchOn = true }
               "torch_off" -> toggleTorch(context, false) { isTorchOn = false }
-              "brightness_high" -> sessionManager.flipCamera() //toggleBrightness(context, true) { isBrightnessHigh = true }
-              "brightness_low" -> sessionManager.flipCamera() //toggleBrightness(context, false) { isBrightnessHigh = false }
-              else -> Log.d("Streamer", "Unknown message: $message")
+              "brightness_high" -> sessionManager.flipCamera()
+              "brightness_low" -> sessionManager.flipCamera()
+              else -> {
+                // 🔥 Show bottom sheet for any other message
+                Log.d("Streamer", "Opening bottom sheet for message: $message")
+
+                if (!showMusicBottomSheet) {
+                  bottomSheetMessage = message
+                  showMusicBottomSheet = true
+                } else {
+                  // Close then re-open to refresh content
+                  showMusicBottomSheet = false
+                  coroutineScope.launch {
+                    kotlinx.coroutines.delay(300) // wait for dismiss animation
+                    bottomSheetMessage = message
+                    showMusicBottomSheet = true
+                  }
+                }
+              }
             }
           }
         })
       }
-
 
       // Main Video Call Controls
       VideoCallControls(
@@ -258,7 +282,20 @@ fun VideoCallScreen(role: AppUtils.Role) {
           }
         }
       )
+
+      if (showMusicBottomSheet) {
+        MusicPlayerSheet(
+          message = bottomSheetMessage,
+          onDismiss = { showMusicBottomSheet = false },
+          onSubscribeClick = {
+
+          }
+        )
+      }
+
     }
+
+
 
     else if (role == AppUtils.Role.VIEWER) {
       VideoControlsViewer (
